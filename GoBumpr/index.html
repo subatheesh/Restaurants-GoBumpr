@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Foodie</title>
+    <link rel="shortcut icon" type="image/png" href="F.png"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="main.css"/>
+  </head>
+  <body ng-app="rest" ng-controller="cityCtrl">
+    <div class="logo">
+      <a href="#"><img width=80 height=80 src="F.png"/></a>
+    </div>
+    <div class="container mx-auto home" >
+      <div class="title">
+        <span class="desc">Made For Foodie<br/></span>
+        <span class="title-text">FOODIE</span><br/>
+        <span class="desc">Made By Foodie</span><br/>
+      </div>
+      <div class="row ">
+        <div class="col-lg-4 col-md-3 col-sm-1"></div>
+        <div class="col-lg-4 col-md-6 col-sm-10">
+          <div class="input-group">
+            <span class="input-group-addon fa fa-map-marker" id="Loc-icon"></span>
+            <input class="form-control" list="cityList" type="" ng-change="getId()" placeholder="Select City.." ng-model="SelectedCity" />
+            <datalist id="cityList">
+                <option ng-repeat="x in cities" value="{{x.title}}">
+            </datalist>
+            <span class="input-group-btn">
+              <button class="btn btn-secondary"  ng-click="getRes()" type="button">Go!</button>
+            </span>
+          </div>
+        </div>
+      </div><!-- <div class="col-lg-8">/<div> -->
+        <br/>
+      <div class="row " ng-hide="hider">
+        <div class="col-lg-4 col-md-3 col-sm-1"></div>
+        <div class="col-lg-4 col-md-6 col-sm-10">
+          <div class="input-group">
+            <span class="input-group-addon fa fa-search" id="Search-icon"></span>
+            <input class="form-control"  type="" placeholder="Search Restaurant.." ng-model="SearchRes" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="list-unstyled res-list" id="res-list">
+      <li class="media img-thumbnail" ng-click="getResDet()" ng-repeat="y in restaurants | filter:SearchRes">
+        <img class="d-flex mr-3" width=100 height=100 src="{{y.restaurant.thumb}}" alt="{{y.restaurant.name}}">
+        <div class="media-body mt-0 mb-1">
+          <h5 class="mt-0 mb-1"><a href="restaurant_details.html?res_id={{y.restaurant.id}}">{{y.restaurant.name}}</a></h5>
+          <span>{{y.restaurant.location.locality_verbose}}</span>
+        </div>
+        <div style="color:#{{y.restaurant.user_rating.rating_color}}; text-align:center;">
+          <p>{{y.restaurant.user_rating.aggregate_rating}}</p>
+          <p>{{y.restaurant.user_rating.rating_text}}</p>
+        </div>
+      </li>
+    </ul>
+    <!-- <div class="container-fluid"> -->
+    <!-- </div> -->
+    <script>
+    var app = angular.module('rest', []);
+    app.config(function($sceDelegateProvider) {
+      $sceDelegateProvider.resourceUrlWhitelist([
+          'https://developers.zomato.com/**'
+      ]);
+    });
+    app.controller('cityCtrl', function($scope, $http) {
+        $scope.hider=true;
+        $scope.getId = function(){
+          $http.get("https://developers.zomato.com/api/v2.1/locations?apikey=af8a8d3e3b13ae5bed2046ba9efc02a7&query="+$scope.SelectedCity)
+          .then(function(response) {
+              $scope.cities = response.data.location_suggestions;
+              $scope.cityId = response.data.location_suggestions[0].entity_id;
+              $scope.type = response.data.location_suggestions[0].entity_type;
+          },function(response){
+            $scope.cities =0;
+          });
+        }
+        $scope.getRes = function(){
+          $http.get("https://developers.zomato.com/api/v2.1/search?apikey=af8a8d3e3b13ae5bed2046ba9efc02a7&entity_type="+$scope.type+"&entity_id="+$scope.cityId)
+          .then(function(response) {
+            $scope.restaurants = response.data.restaurants;
+            $scope.hider=false;
+          },function(response){
+            $scope.restaurants ="no data";
+          });
+        };
+    });
+    </script>
+
+  </body>
+</html>
